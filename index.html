@@ -2,61 +2,111 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#07020f">
 <title>LoFi Bash Bros</title>
 <style>
-  :root{ --border-radius-lg: 12px; --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
-  html,body{ margin:0; padding:0; background:#07020f; min-height:100%; }
-  body{ display:flex; align-items:center; justify-content:center; padding:12px; box-sizing:border-box; }
-  #wrap{ width:100%; max-width:680px; }
+  :root{ --border-radius-lg:12px; --font-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace; }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; background:#07020f; height:100%; width:100%; overflow:hidden; }
+  body{ font-family:var(--font-mono); }
+
+  /* ===== DESKTOP / DEFAULT: centered framed layout ===== */
+  #wrap{ width:100%; max-width:680px; margin:0 auto; padding:12px; }
+  #shell{ width:100%; }
+
+  /* rotate prompt hidden by default */
+  #rotate{ display:none; }
+
+  /* ===== TOUCH DEVICES ===== */
+  @media (hover:none) and (pointer:coarse){
+    #wrap{ max-width:none; padding:0; height:100%; }
+
+    /* PORTRAIT: hide game, show rotate prompt */
+    @media (orientation:portrait){
+      #shell{ display:none; }
+      #rotate{
+        display:flex; flex-direction:column; align-items:center; justify-content:center;
+        position:fixed; inset:0; text-align:center; color:#f5b8d8; padding:40px;
+        background:radial-gradient(circle at 50% 40%, #2d1b4e, #07020f);
+      }
+      #rotate .phone{ width:64px; height:110px; border:4px solid #f9d77a; border-radius:12px; position:relative; animation:tilt 1.8s ease-in-out infinite; margin-bottom:28px; }
+      #rotate .phone:after{ content:""; position:absolute; left:50%; bottom:8px; width:22px; height:4px; background:#f9d77a; border-radius:2px; transform:translateX(-50%); }
+      #rotate h1{ font-size:20px; color:#f9d77a; margin:0 0 10px; letter-spacing:1px; }
+      #rotate p{ font-size:14px; color:#c4a5e8; margin:0; line-height:1.5; }
+      @keyframes tilt{ 0%,40%{transform:rotate(0)} 60%,100%{transform:rotate(-90deg)} }
+    }
+
+    /* LANDSCAPE: full-bleed game, hide desktop chrome */
+    @media (orientation:landscape){
+      #wrap{ height:100%; }
+      #shell{ height:100%; border-radius:0; display:flex; flex-direction:column; }
+      #topbar{ display:none; }
+      #kbh{ display:none; }
+      #walletbar{ display:none; }
+      #stage{ flex:1; display:flex; align-items:center; justify-content:center; }
+      /* canvas fills height, keeps 16:10 aspect (640x400) */
+      #stage canvas#cv{ width:auto !important; height:100% !important; max-width:100%; }
+    }
+  }
 </style>
 </head>
 <body>
 <div id="wrap">
-<div style="background:#0d0420;border-radius:var(--border-radius-lg);overflow:hidden;font-family:var(--font-mono);color:#f5b8d8;">
-<div style="padding:10px 14px;background:linear-gradient(90deg,#2d1b4e,#4a1d5c);font-size:12px;display:flex;justify-content:space-between;border-bottom:2px solid #f5b8d8;">
-<span style="font-weight:bold;color:#f9d77a;">LOFI SMASH 64 v1.0 - LOFI BASH BROS</span>
+<div id="shell" style="background:#0d0420;border-radius:var(--border-radius-lg);overflow:hidden;font-family:var(--font-mono);color:#f5b8d8;">
+<div id="topbar" style="padding:10px 14px;background:linear-gradient(90deg,#2d1b4e,#4a1d5c);font-size:12px;display:flex;justify-content:space-between;border-bottom:2px solid #f5b8d8;">
+<span style="font-weight:bold;color:#f9d77a;">LOFI BASH BROS</span>
 <span id="hud" style="color:#c4a5e8;font-size:10px;">MENU</span>
 </div>
-<div style="position:relative;background:#000;">
+<div id="stage" style="position:relative;background:#000;">
 <canvas id="cv" width="640" height="400" style="display:block;width:100%;image-rendering:pixelated;cursor:pointer;touch-action:none;"></canvas>
 <button id="exit" tabindex="-1" style="position:absolute;top:8px;right:8px;background:rgba(45,27,78,.85);color:#f5b8d8;border:1px solid #6b3fa0;padding:4px 10px;font:11px monospace;cursor:pointer;border-radius:3px;display:none;z-index:5;">EXIT</button>
 <button id="back" tabindex="-1" style="position:absolute;top:8px;left:8px;background:rgba(45,27,78,.85);color:#f5b8d8;border:1px solid #6b3fa0;padding:4px 10px;font:11px monospace;cursor:pointer;border-radius:3px;display:none;z-index:5;">BACK</button>
-<div id="tp" style="position:absolute;left:0;right:0;bottom:0;display:none;justify-content:space-between;padding:0 10px 10px;z-index:4;">
-<div style="display:flex;gap:4px;"><button data-k="a" tabindex="-1" class="tb">L</button><button data-k="d" tabindex="-1" class="tb">R</button></div>
-<div style="display:grid;grid-template-columns:repeat(3,42px);grid-template-rows:repeat(2,42px);gap:3px;">
-<button data-k="w" tabindex="-1" class="tb" style="grid-column:2;">JMP</button><button data-k="l" tabindex="-1" class="tb" style="grid-column:3;">SPC</button>
-<button data-k="j" tabindex="-1" class="tb">JAB</button><button data-k="k" tabindex="-1" class="tb">SMS</button><button data-k="i" tabindex="-1" class="tb">GRB</button>
-</div></div></div>
+<div id="tp">
+<div id="dpad">
+<button data-k="a" tabindex="-1" class="tb">L</button>
+<button data-k="d" tabindex="-1" class="tb">R</button>
+</div>
+<div id="acts">
+<button data-k="w" tabindex="-1" class="tb" style="grid-column:2;">JMP</button>
+<button data-k="l" tabindex="-1" class="tb" style="grid-column:3;">SPC</button>
+<button data-k="j" tabindex="-1" class="tb">JAB</button>
+<button data-k="k" tabindex="-1" class="tb">SMS</button>
+<button data-k="i" tabindex="-1" class="tb">GRB</button>
+</div>
+<button data-k="s" tabindex="-1" id="shieldbtn" class="tb">SHD</button>
+</div></div>
 <div id="kbh" style="padding:6px 12px;background:#1a0d2e;font-size:9px;color:#8a6db5;">MENU: W/S move - SPACE select &nbsp;|&nbsp; FIGHT: A/D move - W jump - J jab - K smash - L special - I grab/use - S shield</div>
-<div style="padding:8px 12px;background:#0d0420;display:flex;gap:8px;align-items:center;">
+<div id="walletbar" style="padding:8px 12px;background:#0d0420;display:flex;gap:8px;align-items:center;">
 <canvas id="pfp" width="40" height="40" style="background:#3d2562;border:2px solid #f5b8d8;border-radius:4px;image-rendering:pixelated;"></canvas>
 <div style="flex:1;font-size:10px;"><div id="nn" style="color:#f5b8d8;">NOT CONNECTED</div><div style="color:#8a6db5;">$LOFI <span id="bal">0.0000</span> · WINS <span id="wins">0</span></div></div>
 <button id="rs" tabindex="-1" style="background:#3d2562;color:#8a6db5;border:1px solid #6b3fa0;padding:6px 10px;font-size:10px;cursor:pointer;border-radius:3px;display:none;">RESET</button>
 </div>
 <style>
-.tb{background:rgba(45,27,78,.7);color:#f5b8d8;border:2px solid #6b3fa0;border-radius:50%;font:bold 9px monospace;cursor:pointer;width:42px;height:42px;-webkit-tap-highlight-color:transparent;}
-.tb.act{background:rgba(245,184,216,.4);border-color:#f9d77a;}
-@media(hover:none) and (pointer:coarse){#tp{display:flex !important;}#kbh{display:none;}}
+.tb{background:rgba(45,27,78,.75);color:#f5b8d8;border:2px solid #6b3fa0;border-radius:50%;font:bold 11px monospace;cursor:pointer;width:54px;height:54px;-webkit-tap-highlight-color:transparent;touch-action:none;user-select:none;}
+.tb.act{background:rgba(245,184,216,.5);border-color:#f9d77a;}
+/* touchpad container hidden by default (desktop) */
+#tp{display:none;}
+#dpad{position:absolute;left:10px;bottom:10px;display:flex;gap:10px;z-index:6;}
+#acts{position:absolute;right:10px;bottom:10px;display:grid;grid-template-columns:repeat(3,54px);grid-template-rows:repeat(2,54px);gap:6px;z-index:6;}
+#shieldbtn{position:absolute;left:128px;bottom:10px;z-index:6;width:48px;height:48px;}
+/* show touch controls only on touch devices */
+@media(hover:none) and (pointer:coarse){
+  #tp{display:block;}
+  #kbh{display:none;}
+}
 @media(hover:hover){#tp{display:none !important;}}
 </style>
 </div>
 <script>
-// --- storage shim for static hosting (GitHub Pages) ---
-// The game expects window.storage.get/set (from the original chat host).
-// Here we back it with localStorage so stats + your local leaderboard persist.
-// Note: the "shared" leaderboard is per-browser here, not a global server board.
+// storage shim for static hosting (GitHub Pages): localStorage-backed
 (function(){
   if(window.storage) return;
   window.storage = {
-    async get(key){
-      try{ const v = localStorage.getItem(key); return v===null?null:{key,value:v}; }
-      catch(e){ return null; }
-    },
-    async set(key,value){
-      try{ localStorage.setItem(key,value); return {key,value}; }
-      catch(e){ return null; }
-    },
+    async get(key){ try{ const v=localStorage.getItem(key); return v===null?null:{key,value:v}; }catch(e){ return null; } },
+    async set(key,value){ try{ localStorage.setItem(key,value); return {key,value}; }catch(e){ return null; } },
     async delete(key){ try{ localStorage.removeItem(key); }catch(e){} return {key,deleted:true}; },
     async list(){ return {keys:[]}; }
   };
@@ -764,5 +814,19 @@ loop();cv.focus();
 </script>
 
 </div>
+
+<div id="rotate">
+  <div class="phone"></div>
+  <h1>ROTATE YOUR DEVICE</h1>
+  <p>LoFi Bash Bros plays in landscape.<br>Turn your phone sideways to start.</p>
+</div>
+
+<script>
+// nudge mobile browsers to recompute height on rotate/resize (iOS Safari quirk)
+function fixH(){ document.documentElement.style.height = window.innerHeight + 'px'; document.body.style.height = window.innerHeight + 'px'; }
+window.addEventListener('resize', fixH);
+window.addEventListener('orientationchange', ()=>setTimeout(fixH,200));
+fixH();
+</script>
 </body>
 </html>
