@@ -12,44 +12,37 @@
   *{ box-sizing:border-box; }
   html,body{ margin:0; padding:0; background:#07020f; height:100%; width:100%; overflow:hidden; }
   body{ font-family:var(--font-mono); }
-
-  /* ===== DESKTOP / DEFAULT: centered framed layout ===== */
   #wrap{ width:100%; max-width:680px; margin:0 auto; padding:12px; }
   #shell{ width:100%; }
 
-  /* rotate prompt hidden by default */
-  #rotate{ display:none; }
+  /* rotate prompt visuals (hidden unless shown by portrait rule) */
+  #rotate{ display:none; flex-direction:column; align-items:center; justify-content:center;
+    position:fixed; inset:0; text-align:center; color:#f5b8d8; padding:40px;
+    background:radial-gradient(circle at 50% 40%, #2d1b4e, #07020f); z-index:50; }
+  #rotate .phone{ width:64px; height:110px; border:4px solid #f9d77a; border-radius:12px; position:relative; animation:tilt 1.8s ease-in-out infinite; margin-bottom:28px; }
+  #rotate .phone:after{ content:""; position:absolute; left:50%; bottom:8px; width:22px; height:4px; background:#f9d77a; border-radius:2px; transform:translateX(-50%); }
+  #rotate h1{ font-size:20px; color:#f9d77a; margin:0 0 10px; letter-spacing:1px; }
+  #rotate p{ font-size:14px; color:#c4a5e8; margin:0; line-height:1.5; }
+  @keyframes tilt{ 0%,40%{transform:rotate(0)} 60%,100%{transform:rotate(-90deg)} }
 
-  /* ===== TOUCH DEVICES ===== */
+  /* TOUCH base */
   @media (hover:none) and (pointer:coarse){
     #wrap{ max-width:none; padding:0; height:100%; }
-
-    /* PORTRAIT: hide game, show rotate prompt */
-    @media (orientation:portrait){
-      #shell{ display:none; }
-      #rotate{
-        display:flex; flex-direction:column; align-items:center; justify-content:center;
-        position:fixed; inset:0; text-align:center; color:#f5b8d8; padding:40px;
-        background:radial-gradient(circle at 50% 40%, #2d1b4e, #07020f);
-      }
-      #rotate .phone{ width:64px; height:110px; border:4px solid #f9d77a; border-radius:12px; position:relative; animation:tilt 1.8s ease-in-out infinite; margin-bottom:28px; }
-      #rotate .phone:after{ content:""; position:absolute; left:50%; bottom:8px; width:22px; height:4px; background:#f9d77a; border-radius:2px; transform:translateX(-50%); }
-      #rotate h1{ font-size:20px; color:#f9d77a; margin:0 0 10px; letter-spacing:1px; }
-      #rotate p{ font-size:14px; color:#c4a5e8; margin:0; line-height:1.5; }
-      @keyframes tilt{ 0%,40%{transform:rotate(0)} 60%,100%{transform:rotate(-90deg)} }
-    }
-
-    /* LANDSCAPE: full-bleed game, hide desktop chrome */
-    @media (orientation:landscape){
-      #wrap{ height:100%; }
-      #shell{ height:100%; border-radius:0; display:flex; flex-direction:column; }
-      #topbar{ display:none; }
-      #kbh{ display:none; }
-      #walletbar{ display:none; }
-      #stage{ flex:1; display:flex; align-items:center; justify-content:center; }
-      /* canvas fills height, keeps 16:10 aspect (640x400) */
-      #stage canvas#cv{ width:auto !important; height:100% !important; max-width:100%; }
-    }
+  }
+  /* TOUCH + PORTRAIT: hide game, show rotate prompt */
+  @media (hover:none) and (pointer:coarse) and (orientation:portrait){
+    #shell{ display:none; }
+    #rotate{ display:flex; }
+  }
+  /* TOUCH + LANDSCAPE: full-bleed game */
+  @media (hover:none) and (pointer:coarse) and (orientation:landscape){
+    #wrap{ height:100%; }
+    #shell{ height:100%; border-radius:0; display:flex; flex-direction:column; }
+    #topbar{ display:none; }
+    #kbh{ display:none; }
+    #walletbar{ display:none; }
+    #stage{ flex:1; display:flex; align-items:center; justify-content:center; }
+    #stage canvas#cv{ width:auto !important; height:100% !important; max-width:100%; }
   }
 </style>
 </head>
@@ -69,6 +62,7 @@
 <button data-k="a" tabindex="-1" class="tb">L</button>
 <button data-k="d" tabindex="-1" class="tb">R</button>
 </div>
+<button data-k="s" tabindex="-1" id="shieldbtn" class="tb">SHD</button>
 <div id="acts">
 <button data-k="w" tabindex="-1" class="tb" style="grid-column:2;">JMP</button>
 <button data-k="l" tabindex="-1" class="tb" style="grid-column:3;">SPC</button>
@@ -76,7 +70,6 @@
 <button data-k="k" tabindex="-1" class="tb">SMS</button>
 <button data-k="i" tabindex="-1" class="tb">GRB</button>
 </div>
-<button data-k="s" tabindex="-1" id="shieldbtn" class="tb">SHD</button>
 </div></div>
 <div id="kbh" style="padding:6px 12px;background:#1a0d2e;font-size:9px;color:#8a6db5;">MENU: W/S move - SPACE select &nbsp;|&nbsp; FIGHT: A/D move - W jump - J jab - K smash - L special - I grab/use - S shield</div>
 <div id="walletbar" style="padding:8px 12px;background:#0d0420;display:flex;gap:8px;align-items:center;">
@@ -85,30 +78,22 @@
 <button id="rs" tabindex="-1" style="background:#3d2562;color:#8a6db5;border:1px solid #6b3fa0;padding:6px 10px;font-size:10px;cursor:pointer;border-radius:3px;display:none;">RESET</button>
 </div>
 <style>
-.tb{background:rgba(45,27,78,.75);color:#f5b8d8;border:2px solid #6b3fa0;border-radius:50%;font:bold 11px monospace;cursor:pointer;width:54px;height:54px;-webkit-tap-highlight-color:transparent;touch-action:none;user-select:none;}
+.tb{background:rgba(45,27,78,.78);color:#f5b8d8;border:2px solid #6b3fa0;border-radius:50%;font:bold 11px monospace;cursor:pointer;width:54px;height:54px;-webkit-tap-highlight-color:transparent;touch-action:none;user-select:none;-webkit-user-select:none;}
 .tb.act{background:rgba(245,184,216,.5);border-color:#f9d77a;}
-/* touchpad container hidden by default (desktop) */
 #tp{display:none;}
-#dpad{position:absolute;left:10px;bottom:10px;display:flex;gap:10px;z-index:6;}
-#acts{position:absolute;right:10px;bottom:10px;display:grid;grid-template-columns:repeat(3,54px);grid-template-rows:repeat(2,54px);gap:6px;z-index:6;}
-#shieldbtn{position:absolute;left:128px;bottom:10px;z-index:6;width:48px;height:48px;}
-/* show touch controls only on touch devices */
-@media(hover:none) and (pointer:coarse){
-  #tp{display:block;}
-  #kbh{display:none;}
-}
+#dpad{position:absolute;left:12px;bottom:12px;display:flex;gap:12px;z-index:6;}
+#shieldbtn{position:absolute;left:138px;bottom:12px;z-index:6;width:48px;height:48px;font-size:10px;}
+#acts{position:absolute;right:12px;bottom:12px;display:grid;grid-template-columns:repeat(3,54px);grid-template-rows:repeat(2,54px);gap:6px;z-index:6;}
 @media(hover:hover){#tp{display:none !important;}}
 </style>
 </div>
 <script>
-// storage shim for static hosting (GitHub Pages): localStorage-backed
-(function(){
-  if(window.storage) return;
-  window.storage = {
-    async get(key){ try{ const v=localStorage.getItem(key); return v===null?null:{key,value:v}; }catch(e){ return null; } },
-    async set(key,value){ try{ localStorage.setItem(key,value); return {key,value}; }catch(e){ return null; } },
-    async delete(key){ try{ localStorage.removeItem(key); }catch(e){} return {key,deleted:true}; },
-    async list(){ return {keys:[]}; }
+(function(){ if(window.storage) return;
+  window.storage={
+    async get(k){try{const v=localStorage.getItem(k);return v===null?null:{key:k,value:v};}catch(e){return null;}},
+    async set(k,v){try{localStorage.setItem(k,v);return {key:k,value:v};}catch(e){return null;}},
+    async delete(k){try{localStorage.removeItem(k);}catch(e){}return{key:k,deleted:true};},
+    async list(){return{keys:[]};}
   };
 })();
 </script>
@@ -262,14 +247,19 @@ let cT=180,vsT=0,advLockout=0,menuSel=0,lsSel=0,qpSel=0,resultReported=false;
 const MENU=['CAMPAIGN','QUICK PLAY','LEADERBOARD','SEASON PRIZES','STATS'];
 // boss state
 let boss=null;
+const isTouch=(typeof matchMedia!=='undefined')&&matchMedia('(hover:none) and (pointer:coarse)').matches;
+const tpEl=document.getElementById('tp');
 const ks={};
 function pK(k){if(!ks[k])ks[k+'p']=1;ks[k]=1;}
 function rK(k){ks[k]=0;}
 addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(['a','d','w','s','j','k','l','i',' ','enter','arrowleft','arrowright','arrowup','arrowdown'].includes(k)){e.preventDefault();e.stopPropagation();}pK(k);if(!mS){iA();mS=true;}if(k==='m')muted=!muted;if(k===' '||k==='enter')adv();},{passive:false,capture:true});
 addEventListener('keyup',e=>{rK(e.key.toLowerCase());});
-cv.tabIndex=0;cv.addEventListener('click',(e)=>{e.preventDefault();cv.focus();if(!mS){iA();mS=true;}});
+cv.tabIndex=0;
 document.querySelectorAll('.tb').forEach(b=>{const k=b.dataset.k;const p=e=>{e.preventDefault();pK(k);b.classList.add('act');if(!mS){iA();mS=true;}};const r=e=>{e.preventDefault();rK(k);b.classList.remove('act');};b.addEventListener('touchstart',p,{passive:false});b.addEventListener('touchend',r,{passive:false});b.addEventListener('mousedown',p);b.addEventListener('mouseup',r);b.addEventListener('mouseleave',r);});
-cv.addEventListener('touchstart',e=>{e.preventDefault();if(scn!=='fight')adv();if(!mS){iA();mS=true;}},{passive:false});
+function evToGame(e){const r=cv.getBoundingClientRect();let cx,cy;if(e.changedTouches&&e.changedTouches[0]){cx=e.changedTouches[0].clientX;cy=e.changedTouches[0].clientY;}else{cx=e.clientX;cy=e.clientY;}return{gx:(cx-r.left)/r.width*RW,gy:(cy-r.top)/r.height*RH};}
+function tapAt(gx,gy){if(scn==='menu'){for(let i=0;i<MENU.length;i++){const y=52+i*24;if(gy>=y-9&&gy<=y+15){menuSel=i;sNav();adv();return;}}return;}if(scn==='cmap'){adv();return;}if(scn==='nft'){for(let i=0;i<18;i++){const col=i%6,row=(i/6|0),x=8+col*51,y=18+row*34;if(gx>=x-2&&gx<=x+46&&gy>=y-2&&gy<=y+30){nftSel=i;sel=myN[i];sNav();return;}}if(gy>=124){adv();return;}return;}if(scn==='mode'){mode=gx<RW/2?'1v1':'2v2';sNav();adv();return;}if(scn==='ls'){if(gx>=10&&gx<=76&&gy>=22&&gy<=36){lsSel=0;sNav();adv();return;}for(let i=0;i<11;i++){const col=i%4,row=(i/4|0),x=10+col*78,y=44+row*36;if(gx>=x&&gx<=x+68&&gy>=y&&gy<=y+28){lsSel=i+1;sNav();adv();return;}}return;}if(scn==='lb'||scn==='prizes'||scn==='stats'){scn='menu';hud.textContent='MENU';backBtn.style.display='none';advLockout=15;return;}if(scn==='res'||scn==='victory'){adv();return;}}
+cv.addEventListener('click',e=>{e.preventDefault();cv.focus();if(!mS){iA();mS=true;}const p=evToGame(e);tapAt(p.gx,p.gy);});
+cv.addEventListener('touchstart',e=>{e.preventDefault();if(!mS){iA();mS=true;}const p=evToGame(e);tapAt(p.gx,p.gy);},{passive:false});
 function blurBtn(){if(document.activeElement&&document.activeElement!==document.body&&document.activeElement.blur)document.activeElement.blur();}
 function menuNav(d){menuSel=(menuSel+d+MENU.length)%MENU.length;sNav();}
 
@@ -603,11 +593,11 @@ function dBomb(b){cir(b.x,b.y,4,40,40,40,255);fr(b.x-1,b.y-6,2,3,80,60,40);if(b.
 function rMenu(){
   gS([30,10,60],[100,40,140]);
   for(let i=0;i<30;i++){const sx=(i*47+fN*0.3)%RW,sy=(i*23)%90,br=150+Math.sin(fN*0.05+i)*50;fr(sx,sy,1,1,br,br*0.8,br);}
-  dT('LOFI BASH BROS',RW/2-tw('LOFI BASH BROS',2)/2,16,255,220,120,2);
+  dT('LOFI BASH BROS',RW/2-tw('LOFI BASH BROS',2)/2,16,255,220,120,2);dT('V1.1',RW-tw('V1.1',1)-3,3,150,120,190,1);
   dSp(1,28,72,1,'idle',fN);dSp(2,RW-28,70,-1,'idle',fN+15);
   for(let i=0;i<MENU.length;i++){const y=52+i*24,s2=i===menuSel;if(s2){fr(RW/2-62,y-3,124,17,255,200,80,200);fr(RW/2-60,y-1,120,13,40,15,60);dT('>',RW/2-74+Math.sin(fN*0.2)*2,y+1,255,200,80,1);}dT(MENU[i],RW/2-tw(MENU[i],1)/2,y+1,s2?255:180,s2?220:150,s2?120:200,1);}
   fr(0,RH-13,RW,13,20,10,40);dT(SEASON.name+' ENDS '+SEASON.ends,RW/2-tw(SEASON.name+' ENDS '+SEASON.ends,1)/2,RH-10,180,150,250,1);
-  if((fN/30|0)%2)dT('W/S MOVE - SPACE SELECT',RW/2-tw('W/S MOVE - SPACE SELECT',1)/2,RH-24,150,120,200,1);
+  if((fN/30|0)%2){const h=isTouch?'TAP A MENU ITEM TO PLAY':'W/S MOVE - SPACE SELECT';dT(h,RW/2-tw(h,1)/2,RH-24,150,120,200,1);}
 }
 function rCMap(){
   gS([20,10,50],[70,30,120]);
@@ -631,7 +621,7 @@ function rCMap(){
   }
   const nextLv=Math.min(save.campaign,11);
   dT('NEXT: '+ST[nextLv].name,RW/2-tw('NEXT: '+ST[nextLv].name,1)/2,RH-22,255,220,120,1);
-  if((fN/20|0)%2)dT('SPACE TO PLAY NEXT LEVEL',RW/2-tw('SPACE TO PLAY NEXT LEVEL',1)/2,RH-11,250,250,250,1);
+  if((fN/20|0)%2){const h=isTouch?'TAP TO PLAY NEXT LEVEL':'SPACE TO PLAY NEXT LEVEL';dT(h,RW/2-tw(h,1)/2,RH-11,250,250,250,1);}
 }
 function rLS(){
   gS([20,10,50],[60,30,110]);
@@ -655,7 +645,7 @@ function rLS(){
     dT(ST[i].name.slice(0,11),x+34-tw(ST[i].name.slice(0,11),1)/2,y+11,255,250,250,1);
     dT('#'+(i+1),x+2,y+2,255,220,120,1);
   }
-  if((fN/20|0)%2)dT('SPACE TO START',RW/2-tw('SPACE TO START',1)/2,RH-10,250,250,250,1);
+  if((fN/20|0)%2){const h=isTouch?'TAP A LEVEL TO START':'SPACE TO START';dT(h,RW/2-tw(h,1)/2,RH-10,250,250,250,1);}
 }
 function rNFT(){
   gS([20,5,40],[60,20,80]);dT('CHOOSE YOUR FIGHTER',RW/2-tw('CHOOSE YOUR FIGHTER',1)/2,7,245,184,216,1);
@@ -681,7 +671,7 @@ function rNFT(){
   const words=m.bio.split(' ');let line='';let ly=158;const maxw=RW-58;
   for(const w of words){const test=line?line+' '+w:w;if(tw(test,1)>maxw){dT(line,52,ly,200,190,230,1);ly+=8;line=w;}else line=test;}
   if(line)dT(line,52,ly,200,190,230,1);
-  if((fN/20|0)%2)dT('A/D/W/S MOVE - SPACE PICK',RW/2-tw('A/D/W/S MOVE - SPACE PICK',1)/2,RH-9,250,250,250,1);
+  if(isTouch){fr(RW-54,150,48,17,250,200,80);fr(RW-53,151,46,15,40,20,60);dT('PICK>',RW-50,155,250,200,80,1);}if((fN/20|0)%2){const h=isTouch?'TAP A FIGHTER THEN TAP PICK':'A/D/W/S MOVE - SPACE PICK';dT(h,RW/2-tw(h,1)/2,RH-9,250,250,250,1);}
 }
 function rMode(){
   gS([20,5,40],[60,20,80]);dT('PICK BATTLE MODE',RW/2-tw('PICK BATTLE MODE',1)/2,15,245,184,216,1);
@@ -689,7 +679,7 @@ function rMode(){
   const s1=mode==='1v1';fr(40-2,50-2,100,80,s1?250:40,s1?200:20,s1?80:60);fr(40,50,96,76,30,15,50);dSp(sel.sp,60,108,1,'idle',fN,null,0,1,0);dSp(1,110,108,-1,'idle',fN+5,null,0,1,1);dT('1V1',75,58,250,200,80,2);dT('CLASSIC',55,128,200,180,220,1);
   const s2=mode==='2v2';fr(180-2,50-2,100,80,s2?250:40,s2?200:20,s2?80:60);fr(180,50,96,76,30,15,50);dSp(sel.sp,200,108,1,'idle',fN,null,0,1,0);dSp(myN.length>1?myN[1].sp:3,225,108,1,'idle',fN+3,null,0,1,0);dSp(4,250,108,-1,'idle',fN+5,null,0,1,1);dSp(5,265,108,-1,'idle',fN+8,null,0,1,1);dT('2V2',215,58,250,200,80,2);dT('TEAM UP',195,128,200,180,220,1);
   dT('A/D TO TOGGLE',RW/2-tw('A/D TO TOGGLE',1)/2,150,150,100,200,1);
-  if((fN/20|0)%2)dT('SPACE TO PICK LEVEL',RW/2-tw('SPACE TO PICK LEVEL',1)/2,175,250,250,250,1);
+  if((fN/20|0)%2){const h=isTouch?'TAP A MODE TO CONTINUE':'SPACE TO PICK LEVEL';dT(h,RW/2-tw(h,1)/2,175,250,250,250,1);}
 }
 function rLB(){
   gS([20,10,50],[60,30,110]);dT('LEADERBOARD',RW/2-tw('LEADERBOARD',1)/2,10,255,220,120,1);dT(SEASON.name,RW/2-tw(SEASON.name,1)/2,22,180,150,250,1);
@@ -800,6 +790,7 @@ function dispatch(){
 }
 function loop(){
   fN++;if(advLockout>0)advLockout--;
+  if(isTouch&&tpEl)tpEl.style.display=(scn==='fight')?'block':'none';
   ['a','d','w','s'].forEach(k=>{if(ks[k]&&!ks[k+'h']){ks[k+'p']=1;ks[k+'h']=1;}if(!ks[k])ks[k+'h']=0;});
   if(scn==='menu'){if(ks['wp']){menuNav(-1);ks['wp']=0;}if(ks['sp']){menuNav(1);ks['sp']=0;}}
   let prevScn=null,attempts=0;while(scn!==prevScn&&attempts<3){prevScn=scn;dispatch();attempts++;}
@@ -814,18 +805,15 @@ loop();cv.focus();
 </script>
 
 </div>
-
 <div id="rotate">
   <div class="phone"></div>
   <h1>ROTATE YOUR DEVICE</h1>
   <p>LoFi Bash Bros plays in landscape.<br>Turn your phone sideways to start.</p>
 </div>
-
 <script>
-// nudge mobile browsers to recompute height on rotate/resize (iOS Safari quirk)
-function fixH(){ document.documentElement.style.height = window.innerHeight + 'px'; document.body.style.height = window.innerHeight + 'px'; }
-window.addEventListener('resize', fixH);
-window.addEventListener('orientationchange', ()=>setTimeout(fixH,200));
+function fixH(){ var h=window.innerHeight; document.documentElement.style.height=h+'px'; document.body.style.height=h+'px'; }
+window.addEventListener('resize',fixH);
+window.addEventListener('orientationchange',function(){ setTimeout(fixH,200); });
 fixH();
 </script>
 </body>
