@@ -6,11 +6,17 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#07020f">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LoFi Bash">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 <title>LoFi Bash Bros</title>
 <style>
   :root{ --border-radius-lg:12px; --font-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace; }
   *{ box-sizing:border-box; }
   html,body{ margin:0; padding:0; background:#07020f; height:100%; width:100%; overflow:hidden; }
+  @supports (height:100dvh){ html,body{ height:100dvh; } }
   body{ font-family:var(--font-mono); }
   #wrap{ width:100%; max-width:680px; margin:0 auto; padding:12px; }
   #shell{ width:100%; }
@@ -81,9 +87,9 @@
 .tb{background:rgba(45,27,78,.78);color:#f5b8d8;border:2px solid #6b3fa0;border-radius:50%;font:bold 11px monospace;cursor:pointer;width:54px;height:54px;-webkit-tap-highlight-color:transparent;touch-action:none;user-select:none;-webkit-user-select:none;}
 .tb.act{background:rgba(245,184,216,.5);border-color:#f9d77a;}
 #tp{display:none;}
-#dpad{position:absolute;left:12px;bottom:12px;display:flex;gap:12px;z-index:6;}
-#shieldbtn{position:absolute;left:138px;bottom:12px;z-index:6;width:48px;height:48px;font-size:10px;}
-#acts{position:absolute;right:12px;bottom:12px;display:grid;grid-template-columns:repeat(3,54px);grid-template-rows:repeat(2,54px);gap:6px;z-index:6;}
+#dpad{position:fixed;left:calc(10px + env(safe-area-inset-left,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));display:flex;gap:12px;z-index:30;}
+#shieldbtn{position:fixed;left:calc(136px + env(safe-area-inset-left,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:30;width:48px;height:48px;font-size:10px;}
+#acts{position:fixed;right:calc(10px + env(safe-area-inset-right,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:repeat(3,54px);grid-template-rows:repeat(2,54px);gap:6px;z-index:30;}
 @media(hover:hover){#tp{display:none !important;}}
 </style>
 </div>
@@ -109,6 +115,7 @@ function px(x,y,r,g,b,a){if(x<0||x>=_W||y<0||y>=_H)return;const i=(y*_W+x)*4;if(
 function fr(x,y,w,h,r,g,b,a){const x0=Math.max(0,x|0),y0=Math.max(0,y|0),x1=Math.min(_W,(x+w)|0),y1=Math.min(_H,(y+h)|0);for(let yy=y0;yy<y1;yy++)for(let xx=x0;xx<x1;xx++)px(xx,yy,r,g,b,a);}
 function dith(x,y,w,h,r,g,b,a){const by=[[0,2],[3,1]],x0=Math.max(0,x|0),y0=Math.max(0,y|0),x1=Math.min(_W,(x+w)|0),y1=Math.min(_H,(y+h)|0);for(let yy=y0;yy<y1;yy++)for(let xx=x0;xx<x1;xx++){const d=by[yy&1][xx&1]-1.5;px(xx,yy,r+d*6,g+d*6,b+d*6,a);}}
 function cir(cx,cy,r,R,G,B,a){for(let y=-r;y<=r;y++)for(let x=-r;x<=r;x++)if(x*x+y*y<=r*r)px(cx+x,cy+y,R,G,B,a);}
+function ringp(cx,cy,rad,R,G,B,a){if(rad<=0){px(Math.round(cx),Math.round(cy),R,G,B,a);return;}const st=Math.max(12,(rad*7)|0);for(let i=0;i<st;i++){const an=i*6.283185/st;px(Math.round(cx+Math.cos(an)*rad),Math.round(cy+Math.sin(an)*rad),R,G,B,a);}}
 
 // ===== SEASON CONFIG =====
 const SEASON={id:'S1',name:'SEASON 1: GENESIS',ends:'JUN 30 2026',prizes:[
@@ -150,7 +157,7 @@ for(const k in SP){const s=SP[k];s.mask=[];for(let y=0;y<s.h;y++){const row=[];f
 const NPAL=[[171,174,191],[255,166,196],[205,209,218],[130,140,152],[114,149,125],[149,54,58],[136,213,255],[253,252,253],[254,247,79],[165,204,51],[1,222,217],[248,197,219],[255,239,43],[254,207,7],[0,111,138],[94,7,16],[255,154,168],[168,1,35],[120,158,36],[127,188,55],[124,124,124],[66,177,227],[71,101,91],[55,77,60],[90,92,104],[188,188,188],[65,150,232],[131,33,30],[108,204,255],[252,120,120],[0,130,122],[254,177,7],[254,126,175],[183,174,254],[108,132,46],[213,2,203],[216,248,123],[250,121,244],[83,211,248],[117,245,254],[37,173,211],[84,177,241],[182,61,55],[213,76,107],[0,2,188],[2,119,248],[254,187,202],[168,150,234],[86,134,37],[2,0,248],[244,58,1],[104,137,246],[4,100,5],[249,161,73],[168,227,250],[134,21,2],[89,246,157],[225,2,89],[155,52,39],[92,213,87],[6,250,251],[68,69,74],[1,87,247],[5,180,3],[90,122,105],[231,209,74],[75,82,126],[244,218,245],[186,246,191],[253,223,171],[244,89,149],[102,71,248]];
 const SD2={7:{w:19,h:15,d:"~~~~~~C333333C~~~~~|~~~~~~C~~~~~~C~~~~~|~~~~~~C~~~~~~C~~~~~|~~~~~~C~~~~~~C~~~~~|~****~Q~****~Q~**~~|3~****************~|3344444444444444444|334****************|334**~~*(5:5(:(*~~*|334*****5(5:5(5****|334**(~*:5:(:5:*(~*|334**~~*********~~*|334*****~*****~****|~34******~~~~~*****|~~4****************|"},8:{w:19,h:15,d:"~~~~~~$!####!$~~~~~|~~~~~~$~~~~~~$~~~~~|~~~~~~$~~~~~~$~~~~~|~~~~~~$~~~~~~$~~~~~|~!!!!~9~!!!!~9~!!~~|2~!!!!!!!!!!!!!!!!~|(222222222222222222|;((((((((((((((((((|$;;;;;;;;;;;;;;;;;;|$$#!9~~9RSTUVBN9~~9|$$#!9~~9DEWXFYZ9~~9|$$#!9~(9!!!!!!!9~(9|$$#!!99!!~~~~~!!99!|~$#!!!!!~!!!!!~!!!!|~~#!!!!!!!!!!!!!!!!|"},9:{w:19,h:15,d:"~~~~~~[&KKKK&[~~~~~|~~~~~~[~~~~~~[~~~~~|~~~~~~[~~~~~~[~~~~~|~~~~~~[~~~~~~[~~~~~|~&&&&~0~&&&&~0~&&~~|<~&&&&&&&&&&&&&&&&~|<<00000000000000000|<<0&&&&&&&&&&&&&&&&|<<0&&~~&~~~~~6~&~~&|<<0&&&&&~~~>~6~&&&&|<<0&&(~&~4~>~6~&(~&|<<0&&~~&&&&&&&&&~~&|<<0&&&&&~~~~~~~&&&&|~<0&&&&&&~~~~~&&&&&|~~0&&&&&&&&&&&&&&&&|"},10:{w:19,h:21,d:"~~~--~IGHHHHGI~--~~|~~-~~~I~~~~~~I~~~-~|~~~--------------~~|~~~~~~I~~~~~~I~~~~~|~''''~;~''''~;~''~~|2~''''''''''''''''~|(222222222222222222|;((((((((((((((((((|=;;;;;;;;;;;;;;;;;;|==J'''''~Z@\\F]~''''|==J''(~'~~~~~~~'(~'|==J''~~'''''''''~~'|==J'''''~(~~~(~''''|~=J''''''K'''('''''|~~J'''''K''''''''''|~~~~~~~~~K~~~~~~~~~|~~~~~~~~~~~~~~~~~~~|~~~~~~[~K<K~~~~~~~~|~~~~~~~K<[<KK~~~~~~|~~~~~[~[KKK&~~~~~~~|~~~~~~~~~[~~~[~~~~~|"},11:{w:23,h:19,d:"~~~~~~~~))))))))~~~~~~~|~~~~~~~)~~~~~~~~)~~~~~~|~~~~~~)~$!####!$~)~~~~~|~~~~~~)~$~~~~~~$~)~~~~~|~~)))))~$~))))~$~))~~~~|~)~~~~~~$~~~~~~$~~~)~~~|)~~!!!!~9~!!!!~9~!!~)~~|)~$~!!!!!!!!!!!!!!!!~)~|)~$$#################~)|)~$$#!!!!!!!!!!!!!!!!~)|)~$$#!!~~!(5:5(:(!~~!~)|)~$$#!!!!!5(5:5(5!!!!~)|)~$$#!!~~!:5:(:5:!~~!~)|)~$$#!!~L!!!!!!!!!L~!~)|)~$$#!!~L!~!!!!!~!L~!~)|~)~$#!!~~!!~~~~~!!~~!~)|~~)~#!!!!!!!!!!!!!!!!~)|~~~)~~~~~~~~~~~~~~~~~)~|~~~~)))))))))))))))))~~|"},12:{w:23,h:19,d:"~~~~~~~~~~~$$~~~~~~~~~~|~~~~~~~~~~~~$~~~~~~~~~~|~~~~~~~~~~~~5~~~~~~~~~~|~~~~~~~~~~~~5~~~~~~~~~~|~~~~~~~~~~~~$~~~~~~~~~~|~~~~~~~~~~~~$~~~~~~~~~~|~~~~~~~~~~~~5~~~~~~~~~~|~~~~~~~~~~~^5^~~~~~~~~~|~~~++++++++^^^+++++~~~~|~~?~++++++++++++++++~~~|~~~?/////////////////~~|__M?/++++++++++++++++~_|N~~?/++~~~~~~~~~~~~++~N|N~??/+~~>~4~~~~4~>~~+~N|N~~?/+~>>~44~~44~>>~+~N|__M?/+~>~~~~~~~~~~>~+~_|~~~?/+~~~~666666~~~~+~~|~~~?/++~~~~~~~~~~~~++~~|~~~~/++++++++++++++++~~|"},13:{w:19,h:15,d:"~~~~~~1\"OOOO\"1~~~~~|~~~~~~1~~~~~~1~~~~~|~~~~~~1~~~~~~1~~~~~|~~~~~~1~~~~~~1~~~~~|~\"\"\"\"~A~\"\"\"\"~A~\"\"~~|1~\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"~|11,,,,,,,,,,,,,,,,,|11,\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"|11,\"\"~~\"~`~`~`~\"~~\"|11,\"\"\"\"\"~E~E~E~\"\"\"\"|11,\"\"(~\"~2~2~2~\"(~\"|11,\"\"~~\"\"\"\"\"\"\"\"\"~~\"|11,\"\"\"\"\"~~~~~~~\"\"\"\"|~1,\"\"\"\"\"\"~~~~~\"\"\"\"\"|~~,\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"|"},14:{w:19,h:19,d:"~~~~~~77aaaa77~~~~~|~~~~~~7~~~~~~7~~~~~|~~~~~~7~~~~~~7~~~~~|~~~~~~7~~~~~~7~~~~~|~%7%%~8~%%7%~8~%%~~|7~%%7%%%%%%%%%%7%%~|7788888888888888888|778%%%%%%%%%%%%%7%%|778%7%%%~~~~~6~%%%7|778%%~~%~~~>~6~%~~%|778%%~L%~4~>~6~%L~%|778%%~L%%%%%%%%%L~%|778%%~~%~~~~~~~%~~%|~78%%%%%43%%7%%%%%%|~~87%%%%%4%%%%%%%7%|~~~~~~~~~*~~~~~~~~~|~~~~~3~*4*43~~~~~~~|~~~~~~~~34*~~~~~~~~|~~~~~~~*~*~~4~~~~~~|"},15:{w:19,h:15,d:"~~~~~~.-bbbb-.~~~~~|~~~~~~.~~~~~~.~~~~~|~~~~~~.~~~~~~.~~~~~|~~~~~~.~~~~~~.~~~~~|~....~@~....~@~..~~|@~................~|@@-----------------|@@-................|@@-..~~~~~~~~~~~~..|@@-.~~>~4~~~~4~>~~.|@@-.~>>~44~~44~>>~.|@@-.~>~~~~~~~~~~>~.|@@-.~~~~666666~~~~.|~@-..~~~~~~~~~~~~..|~~-................|"},16:{w:27,h:22,d:"~~~~~~~~~~~~~))~~~~~~~~~~~~|~~~~~~~~~~~~)$$)~~~~~~~~~~~|~~~~~~~~~~~~~)$)~~~~~~~~~~~|~~~~~~~~~~~~~)5)~~~~~~~~~~~|~~~~~~~~~~~~~)5)~~~~~~~~~~~|~~~~~~~~~~~~~)$)~~~~~~~~~~~|~~~~~~~~~~~~~)$)~~~~~~~~~~~|~~~~))))))))))5))))))~~~~~~|~~~)~~~~~~~~~^5^~~~~~)~~~~~|~~)~~\"\"\"\"\"\"\"\"^^^\"\"\"\"\"~)~~~~|~~)~1~\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"~))~~|~)~~~1,,,,,,,,,,,,,,,,,~~)~|)~PPc1,\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"~P~)|)~B~~1,\"\"AA\"\"~~~~~\"\"AA\"~B~)|)~B~11,\"A~~A\"Z@\\F]\"A~~A~B~)|)~B~~1,\"A~~A\"~~~~~\"A~~A~B~)|)~PPc1,\"A~(A\"\"\"\"\"\"\"A~(A~P~)|~)~~~1,\"\"AA\"\"~~~~~\"\"AA\"~~)~|~~))~1,\"\"\"\"\"~\"\"\"\"\"~\"\"\"\"~)~~|~~~~)~,\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"~)~~|~~~~~)~~~~~~~~~~~~~~~~~)~~~|~~~~~~)))))))))))))))))~~~~|"},17:{w:19,h:15,d:"~~~~~~$!####!$~~~~~|~~~~~~$~~~~~~$~~~~~|~~~~~~$~~~~~~$~~~~~|~~~~~~$~~~~~~$~~~~~|~!!!!~9~!!!!~9~!!~~|$~!!!!!!!!!!!!!!!!~|$$#################|$$#!!!!!!!!!!!!!!!!|$$#!!~~!\\defg6h!~~!|$$#!!!!!RSTUVBN!!!!|$$#!!~~!DEWXFYZ!~~!|$$#!!~L!!!!!!!!!L~!|$$#!!~L!~!~!~!~!L~!|~$#!!~~!!~!~!~!!~~!|~~#!!!!!!!!!!!!!!!!|"},18:{w:19,h:15,d:"~~~--~$!####!$~--~~|~~-~~~$~~~~~~$~~~-~|~~~--------------~~|~~~~~~$~~~~~~$~~~~~|~!!!!~9~!!!!~9~!!~~|$~!!!!!!!!!!!!!!!!~|$$#################|$$#!!!!!!!!!!!!!!!!|$$#!!~~~~~~~~~~~~~!|$$#!~~>~4~~~~4~>~~!|$$#!~>>~44~~44~>>~!|$$#!~>~~~~~~~~~~>~!|$$#!~~~~666666~~~~!|~$#!!~~~~~~~~~~~~!!|~~#!!!!!!!!!!!!!!!!|"}};
 for(const k in SD2){const s=SD2[k],rs=s.d.split('|').filter(r=>r.length>0),m=[];for(let y=0;y<rs.length;y++){const r=[];for(let x=0;x<rs[y].length;x++){const c=rs[y][x];r.push(c==='~'?null:NPAL[c.charCodeAt(0)-33]);}m.push(r);}SP[k]={w:s.w,h:s.h,m};}for(const k in SD2){const s=SP[k];s.mask=[];for(let y=0;y<s.h;y++){const row=[];for(let x=0;x<s.w;x++)row.push(!!s.m[y][x]);s.mask.push(row);}}
-const META=[null,{n:'AKANE',mv:'power',c:[182,60,53],bio:'A crimson deck that bleeds bass. Hits like a kick drum at 3am.'},{n:'YUKI',mv:'special',c:[10,232,216],bio:'Glows with rare frost. Brews cocoa beats, drips 2x rewards.'},{n:'HOSHI',mv:'air',c:[10,232,216],bio:'A starlit disco soul. Floats on shimmering melodies.'},{n:'MURASAKI',mv:'speed',c:[68,40,188],bio:'Violet blur. Gone before the snare even lands.'},{n:'HAI',mv:'power',c:[120,120,120],bio:'Concrete and static. The oldest deck still standing.'},{n:'DAIDAI',mv:'air',c:[228,92,16],bio:'Sunset-warm and weightless. Antennas tuned to the sky.'},{n:'MIDORI',mv:'power',c:[165,204,51],bio:'Moss-grown and grinning. Roots its bass deep in the earth.'},{n:'SHIRO',mv:'special',c:[171,174,191],bio:'Red-white-blue static king. Spectrum eyes see every beat.'},{n:'KURENAI',mv:'power',c:[149,54,58],bio:'Deep-red lacquer. Calm face, devastating low end.'},{n:'SORA',mv:'special',c:[136,213,255],bio:'Haloed sky-deck. Drips cocoa from the heavens, blessed tone.'},{n:'GIN',mv:'speed',c:[171,174,191],bio:'Gold-caged silver. Polished, fast, impossible to pin down.'},{n:'AOI',mv:'special',c:[0,222,217],bio:'Antenna\'d cyan android. Broadcasts on frequencies you can\'t hear.'},{n:'MOMO',mv:'air',c:[255,166,196],bio:'Peach-soft and bubbly. Bounces higher than anyone.'},{n:'KOKE',mv:'power',c:[114,149,125],bio:'Swamp-green and dripping. Slow, heavy, unkillable groove.'},{n:'KIIRO',mv:'speed',c:[254,207,5],bio:'Pure neon lemon. Pure caffeine. Pure speed.'},{n:'SAKURA',mv:'special',c:[255,166,196],bio:'Pink haloed angel-bot. Petals and rainbow static drift behind.'},{n:'HAGANE',mv:'power',c:[171,174,191],bio:'Brushed-steel veteran. Rainbow EQ, fists of rebar.'},{n:'KASUMI',mv:'air',c:[171,174,191],bio:'Pale silver haze. Drifts in, lands the hit, drifts out.'}];
+const META=[null,{n:'AKANE',mv:'power',c:[182,60,53],bio:'A crimson deck that bleeds bass. Hits like a kick drum at 3am.'},{n:'YUKI',mv:'special',c:[10,232,216],bio:'Glows with rare frost. Brews cocoa beats, drips 2x rewards.'},{n:'HOSHI',mv:'air',c:[10,232,216],bio:'A starlit disco soul. Floats on shimmering melodies.'},{n:'MURASAKI',mv:'speed',c:[68,40,188],bio:'Violet blur. Gone before the snare even lands.'},{n:'HAI',mv:'power',c:[120,120,120],bio:'Concrete and static. The oldest deck still standing.'},{n:'DAIDAI',mv:'air',c:[228,92,16],bio:'Sunset-warm and weightless. Antennas tuned to the sky.'},{n:'MIDORI',sm:'ROOT QUAKE',mv:'power',c:[165,204,51],bio:'Moss-grown and grinning. Roots its bass deep in the earth.'},{n:'SHIRO',sm:'STATIC NOVA',mv:'special',c:[171,174,191],bio:'Red-white-blue static king. Spectrum eyes see every beat.'},{n:'KURENAI',sm:'BASS DROP',mv:'power',c:[149,54,58],bio:'Deep-red lacquer. Calm face, devastating low end.'},{n:'SORA',sm:'HALO BEAMS',mv:'special',c:[136,213,255],bio:'Haloed sky-deck. Drips cocoa from the heavens, blessed tone.'},{n:'GIN',sm:'QUICKSILVER',mv:'speed',c:[171,174,191],bio:'Gold-caged silver. Polished, fast, impossible to pin down.'},{n:'AOI',sm:'FREQ WAIL',mv:'special',c:[0,222,217],bio:'Antenna\'d cyan android. Broadcasts on frequencies you can\'t hear.'},{n:'MOMO',sm:'BUBBLE POP',mv:'air',c:[255,166,196],bio:'Peach-soft and bubbly. Bounces higher than anyone.'},{n:'KOKE',sm:'SWAMP GUARD',mv:'power',c:[114,149,125],bio:'Swamp-green and dripping. Slow, heavy, unkillable groove.'},{n:'KIIRO',sm:'NEON RUSH',mv:'speed',c:[254,207,5],bio:'Pure neon lemon. Pure caffeine. Pure speed.'},{n:'SAKURA',sm:'PETAL STORM',mv:'special',c:[255,166,196],bio:'Pink haloed angel-bot. Petals and rainbow static drift behind.'},{n:'HAGANE',sm:'REBAR FIST',mv:'power',c:[171,174,191],bio:'Brushed-steel veteran. Rainbow EQ, fists of rebar.'},{n:'KASUMI',sm:'MIST DRIFT',mv:'air',c:[171,174,191],bio:'Pale silver haze. Drifts in, lands the hit, drifts out.'}];
 const IT={
   vinyl:{n:'VINYL',c:[40,40,60],c2:[180,40,80],kind:'projectile',dmg:9},
   cass:{n:'CASS',c:[80,60,40],c2:[200,150,80],kind:'projectile',dmg:13},
@@ -239,7 +246,7 @@ function sBoss(){if(!actx)return;const t=actx.currentTime;nt(50,t,0.5,'sawtooth'
 
 const ALL_IDS=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18];
 function mkN(id){const m=META[id];return{sp:id,gl:id===2||id===10||id===16,mv:m.mv,n:m.n,c:m.c,bio:m.bio};}
-let myN=[],sel=null,mode='1v1',gameMode='quick',curLevel=0;
+let myN=[],sel=null,nftSel=0,mode='1v1',gameMode='quick',curLevel=0;
 function mkF(n,team,x){return{n,x,y:60,vx:0,vy:0,fc:x>RW/2?-1:1,d:0,og:false,st:'idle',sT:0,iv:30,team,cd:0,jp:2,sh:1,sd:false,h:null,wpAtk:0,squash:1,landDust:0,hitstop:0};}
 let figs=[],stk=[],win=-1,scn='menu',sIdx=0;
 let crts=[],itm=[],prj=[],prt=[],bombs=[],wt=[];
@@ -442,11 +449,24 @@ function uF(f,idx){
   if(f.x<BL||f.x>BR||f.y<BT||f.y>BB){endStock(idx);}
 }
 function dSpc(f,idx){
-  const m=f.n.mv;
-  if(m==='speed'){f.vx=f.fc*4.5;f.iv=15;}
-  else if(m==='power'){prj.push({x:f.x,y:f.y-5,vx:-2.8,vy:0,o:idx,team:f.team,d:10,c:f.n.c,l:30,k:'wave'});prj.push({x:f.x,y:f.y-5,vx:2.8,vy:0,o:idx,team:f.team,d:10,c:f.n.c,l:30,k:'wave'});}
+  const id=f.n.sp,m=f.n.mv,T=f.team,C=f.n.c;
+  function pj(o){prj.push(Object.assign({x:f.x,y:f.y-10,vx:0,vy:0,o:idx,team:T,d:8,c:C,l:40,k:'item',spin:0},o));}
+  if(id===7){pj({y:f.y-4,vx:-2,d:13,l:42,k:'wave'});pj({y:f.y-4,vx:2,d:13,l:42,k:'wave'});}
+  else if(id===8){pj({vx:4,d:6,l:22,k:'slice'});pj({vx:-4,d:6,l:22,k:'slice'});pj({vy:-4,d:6,l:22,k:'slice'});pj({vy:3,d:6,l:22,k:'slice'});}
+  else if(id===9){if(!f.og)f.vy=7;f.iv=12;f.squash=0.7;pj({y:f.y-4,vx:-2.4,d:12,l:34,k:'wave'});pj({y:f.y-4,vx:2.4,d:12,l:34,k:'wave'});}
+  else if(id===10){pj({x:f.x+f.fc*15,vx:f.fc*5,d:9,l:50,k:'beam',c:[250,220,120]});pj({x:f.x+f.fc*15,vx:f.fc*4.4,vy:1.2,d:9,l:40,k:'beam',c:[250,220,120]});}
+  else if(id===11){f.vx=f.fc*5;f.iv=18;pj({x:f.x-f.fc*6,vx:-f.fc*3,d:5,l:24,k:'slice'});pj({x:f.x-f.fc*12,vx:-f.fc*3,d:5,l:24,k:'slice'});}
+  else if(id===12){pj({x:f.x+f.fc*14,y:f.y-16,vx:f.fc*4.5,d:5,l:44,k:'beam'});pj({x:f.x+f.fc*14,y:f.y-10,vx:f.fc*4.5,d:5,l:44,k:'beam'});pj({x:f.x+f.fc*14,y:f.y-4,vx:f.fc*4.5,d:5,l:44,k:'beam'});}
+  else if(id===13){f.vy=-9.5;f.jp=2;f.squash=1.5;pj({vx:3,vy:-1,d:4,l:14,k:'slice'});pj({vx:-3,vy:-1,d:4,l:14,k:'slice'});pj({vy:-3.5,d:4,l:14,k:'slice'});}
+  else if(id===14){f.iv=40;f.vx=0;f.squash=0.8;pj({y:f.y-4,vx:-1.6,d:6,l:30,k:'wave'});pj({y:f.y-4,vx:1.6,d:6,l:30,k:'wave'});}
+  else if(id===15){f.vx=f.fc*5.5;f.iv=22;}
+  else if(id===16){for(let i=0;i<5;i++)pj({x:f.x+f.fc*8,vx:f.fc*(1.5+i*0.7),vy:-2.6-i*0.3,d:5,l:70,c:[255,166,196]});}
+  else if(id===17){for(let ti=0;ti<figs.length;ti++){if(ti===idx||figs[ti].dead||figs[ti].team===T)continue;const tg=figs[ti];const dx=tg.x-f.x;if(Math.sign(dx)===f.fc&&Math.abs(dx)<34&&Math.abs(tg.y-f.y)<30&&tg.iv<=0&&!tg.sd){tg.d+=15;tg.vx=f.fc*11;tg.vy=-8;tg.st='hit';tg.sT=20;tg.iv=15;sS();}}if(boss&&T===0&&Math.abs(boss.x-f.x)<50){boss.hp-=20;boss.flash=8;}}
+  else if(id===18){f.vx=f.fc*3.2;f.vy=-5.5;f.iv=24;if(f.jp<1)f.jp=1;}
+  else if(m==='speed'){f.vx=f.fc*4.5;f.iv=15;}
+  else if(m==='power'){pj({y:f.y-5,vx:-2.8,d:10,l:30,k:'wave'});pj({y:f.y-5,vx:2.8,d:10,l:30,k:'wave'});}
   else if(m==='air'){f.vy=-8;f.vx=f.fc*2.8;f.jp=2;f.squash=1.4;}
-  else if(m==='special'){prj.push({x:f.x+f.fc*15,y:f.y-10,vx:f.fc*5,vy:0,o:idx,team:f.team,d:14,c:[250,200,80],l:50,k:'beam'});}
+  else if(m==='special'){pj({x:f.x+f.fc*15,vx:f.fc*5,d:14,l:50,k:'beam',c:[250,200,80]});}
 }
 function uP(p,i){
   p.x+=p.vx;p.y+=p.vy;p.l--;if(p.spin!==undefined)p.spin+=0.4;if(p.k!=='wave'&&p.k!=='beam')p.vy+=0.15;
@@ -574,7 +594,7 @@ function dBoss(){
   fr(bx-28,by-20,56,3,Math.min(255,bodyC[0]+40),Math.min(255,bodyC[1]+40),Math.min(255,bodyC[2]+40));
   // speakers (spinning)
   for(const sxp of [-15,15]){cir(bx+sxp,by,11,30,20,30,255);for(let r=9;r>=0;r-=2)ringp(bx+sxp,by,r,80+r*8,40,60,255);cir(bx+sxp,by,3,250,200,80,255);const a=fN*0.1;fr(bx+sxp+Math.cos(a)*6,by+Math.sin(a)*6,2,2,200,150,200,255);}
-  // center face/display — angry eyes + mouth
+  // center face/display - angry eyes + mouth
   fr(bx-7,by-12,14,8,20,10,20,255);
   const eyeC=boss.phase===3?[255,40,40]:[255,180,40];
   fr(bx-5,by-10,3,2,eyeC[0],eyeC[1],eyeC[2]);fr(bx+2,by-10,3,2,eyeC[0],eyeC[1],eyeC[2]);
@@ -593,7 +613,7 @@ function dBomb(b){cir(b.x,b.y,4,40,40,40,255);fr(b.x-1,b.y-6,2,3,80,60,40);if(b.
 function rMenu(){
   gS([30,10,60],[100,40,140]);
   for(let i=0;i<30;i++){const sx=(i*47+fN*0.3)%RW,sy=(i*23)%90,br=150+Math.sin(fN*0.05+i)*50;fr(sx,sy,1,1,br,br*0.8,br);}
-  dT('LOFI BASH BROS',RW/2-tw('LOFI BASH BROS',2)/2,16,255,220,120,2);dT('V1.1',RW-tw('V1.1',1)-3,3,150,120,190,1);
+  dT('LOFI BASH BROS',RW/2-tw('LOFI BASH BROS',2)/2,16,255,220,120,2);dT('V1.2',RW-tw('V1.2',1)-3,3,150,120,190,1);
   dSp(1,28,72,1,'idle',fN);dSp(2,RW-28,70,-1,'idle',fN+15);
   for(let i=0;i<MENU.length;i++){const y=52+i*24,s2=i===menuSel;if(s2){fr(RW/2-62,y-3,124,17,255,200,80,200);fr(RW/2-60,y-1,120,13,40,15,60);dT('>',RW/2-74+Math.sin(fN*0.2)*2,y+1,255,200,80,1);}dT(MENU[i],RW/2-tw(MENU[i],1)/2,y+1,s2?255:180,s2?220:150,s2?120:200,1);}
   fr(0,RH-13,RW,13,20,10,40);dT(SEASON.name+' ENDS '+SEASON.ends,RW/2-tw(SEASON.name+' ENDS '+SEASON.ends,1)/2,RH-10,180,150,250,1);
@@ -612,7 +632,7 @@ function rCMap(){
     // node circle
     const nc=isBoss?[250,80,40]:beaten?[120,250,180]:unlocked?[255,200,80]:[80,70,110];
     cir(nx,ny+8,isBoss?13:11,nc[0]*0.3,nc[1]*0.3,nc[2]*0.3,255);
-    for(let r=isBoss?13:11;r>=isBoss?11:9;r--)ringp(nx,ny+8,r,nc[0],nc[1],nc[2],255);
+    for(let r=isBoss?13:11;r>=(isBoss?11:9);r--)ringp(nx,ny+8,r,nc[0],nc[1],nc[2],255);
     if(beaten)dT('OK',nx-4,ny+5,120,250,180,1);
     else if(!unlocked)dT('X',nx-1,ny+5,150,140,170,1);
     else dT(String(i+1),nx-(i+1>9?4:1),ny+5,nc[0],nc[1],nc[2],1);
@@ -665,8 +685,9 @@ function rNFT(){
   dSp(nftSel+1,28,158,1,'idle',fN);
   dT(m.n,52,130,255,220,120,2);
   const ac=m.mv==='power'?[255,120,120]:m.mv==='speed'?[150,200,255]:m.mv==='air'?[180,250,180]:[250,220,120];
-  dT(m.mv.toUpperCase()+' TYPE',52,146,ac[0],ac[1],ac[2],1);
-  if(nftSel+1===2||nftSel+1===10||nftSel+1===16)dT('RARE - 2X REWARDS',150,146,250,250,150,1);
+  const smn=m.sm||(m.mv==='power'?'SHOCKWAVE':m.mv==='speed'?'BLITZ DASH':m.mv==='air'?'SKY LEAP':'LOFI BEAM');
+  dT(m.mv.toUpperCase()+' - '+smn,52,146,ac[0],ac[1],ac[2],1);
+  if(nftSel+1===2||nftSel+1===10||nftSel+1===16)dT('RARE 2X',RW-14-tw('RARE 2X',1),131,250,250,150,1);
   // wrap bio to width
   const words=m.bio.split(' ');let line='';let ly=158;const maxw=RW-58;
   for(const w of words){const test=line?line+' '+w:w;if(tw(test,1)>maxw){dT(line,52,ly,200,190,230,1);ly+=8;line=w;}else line=test;}
